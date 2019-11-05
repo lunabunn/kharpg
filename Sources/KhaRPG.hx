@@ -18,6 +18,7 @@ class KhaRPG {
     public static inline var ASPECT_RATIO: Float = WIDTH / HEIGHT;
     static var windowWidthPrev: Int = WIDTH;
     static var windowHeightPrev: Int = HEIGHT;
+    static var timePrev: Float = 0;
 
     public static var window(default, null): Window;
     public static var root(default, set): core.Node;
@@ -34,14 +35,24 @@ class KhaRPG {
         return x;
     }
 
-	static function update(): Void {
+    static function init() {
+        // root = new core.Node2D(100, 100);
+        // root.addChild(new core.NineSlice(Assets.images.nineslice, 16, 35, 16, 16));
+    }
+
+	static function update(dt: Float): Void {
         if (window.width != windowWidthPrev
             || window.height != windowHeightPrev)
             resize(window.width, window.height);
+        
+        if (root != null)
+            root.update(dt);
 	}
 
 	static function render(frame: Framebuffer): Void {
         if (root != null) {
+            root.prerender();
+            backbuffer.g2.color = kha.Color.White;
             backbuffer.g2.begin();
             root.render(backbuffer.g2);
             backbuffer.g2.end();
@@ -78,7 +89,8 @@ class KhaRPG {
 			Assets.loadEverything(function () {
                 backbuffer = Image.createRenderTarget(WIDTH, HEIGHT);
                 window = _window;
-                Scheduler.addTimeTask(function () { update(); }, 0, 1 / 60);
+                init();
+                Scheduler.addTimeTask(function () { var newTime = Scheduler.time(); update((newTime - timePrev) * 60); timePrev = newTime; }, 0, 1 / 60);
 				System.notifyOnFrames(function (frames) { render(frames[0]); });
 			});
 		});
